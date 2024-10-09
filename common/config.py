@@ -1,12 +1,14 @@
 import elabapi_python
 import urllib3
+from pathlib import Path
 
+current_dir = Path(__file__).parent
 ## CONFIGURATION VARIABLES ##
 # it is best practice to keep your api keys secret. there is a file, 'api_key',
 # in the .gitignore where you should paste your api key as plain text.
 # it will not (and should not) be added to any public git repository, and will remain unique for each machine
 # new api keys can be generated at https://eln.ddomlab.org/ucp.php?tab=4
-API_KEY_PATH = "api_key"
+API_KEY_PATH = str(current_dir.parent / "api_key")
 URL = "https://eln.ddomlab.org/api/v2"
 PRINTER_PATH = "/home/kyle/Desktop/label.pdf"
 ##################################################
