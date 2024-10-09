@@ -10,7 +10,7 @@ current_dir = Path(__file__).parent
 # new api keys can be generated at https://eln.ddomlab.org/ucp.php?tab=4
 API_KEY_PATH = str(current_dir.parent / "api_key")
 URL = "https://eln.ddomlab.org/api/v2"
-PRINTER_PATH = "/home/kyle/Desktop/label.pdf"
+PRINTER_PATH = current_dir.parent / "tmp" / "label.pdf"
 ##################################################
 
 # allows the connection
