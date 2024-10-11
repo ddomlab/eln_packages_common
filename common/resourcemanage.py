@@ -55,6 +55,12 @@ class Resource_Manager:
         # send the request
         requests.post(url, headers=header)
 
+    def add_tag(self, item_id: int, tag: str):
+        header = config.api_client.default_headers
+        header = {**header, **{"Content-type": "application/json"}}
+        url = config.URL + "/items/" + str(item_id) + "/tags/"
+        requests.post(url, headers=header, json={"tag": tag})
+
     def get_items(
         self, size=None
     ) -> list:  # returns the most recent 15 if a size is not specified
