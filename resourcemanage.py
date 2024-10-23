@@ -61,12 +61,11 @@ class Resource_Manager:
         url = config.URL + "/items/" + str(item_id) + "/tags/"
         requests.post(url, headers=header, json={"tag": tag})
 
-    def get_items(
-        self, size=None
-    ) -> list:  # returns the most recent 15 if a size is not specified
+    def get_items(self, size=None) -> list[config.elabapi_python.models.item.Item]:
+    # returns the most recent 15 if a size is not specified
         return self.itemsapi.read_items(limit=size)
 
-    def get_experiments(self) -> list:
+    def get_experiments(self) -> list[config.elabapi_python.models.experiment.Experiment]:
         return self.expapi.read_experiments()
 
     def upload_file(
@@ -79,7 +78,7 @@ class Resource_Manager:
     ):  # resource_type can be 'item' or 'experiment', wraps the upload api
         self.uploadsapi.delete_upload(resource_type, id, upload_id)
 
-    def get_uploaded_files(self, id, resource_type="items"):
+    def get_uploaded_files(self, id, resource_type="items") -> list[config.elabapi_python.models.upload.Upload]:
         return self.uploadsapi.read_uploads(
             resource_type, id
         )  # returns a list of file objects that can be written to a file
