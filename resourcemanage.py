@@ -6,6 +6,7 @@
 # i am mostly writing wrappers and making the code a little more abstract and generally usable
 
 from eln_packages_common import config
+import json
 import requests
 
 
@@ -29,7 +30,8 @@ class Resource_Manager:
 
     def change_item(self, id: int, body_dict: dict):
         self.itemsapi.patch_item(id, body=body_dict)
-
+    def get_metadata(self, id) -> dict:
+        return json.loads(self.get_item(id)["metadata"])
     def get_item(self, id) -> dict:
         return self.itemsapi.get_item(id).to_dict()
         # this dictionary should contain:
