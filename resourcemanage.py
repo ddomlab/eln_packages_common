@@ -17,7 +17,7 @@ class Resource_Manager:
         self.uploadsapi = config.load_uploads_api()
         self.printer_path = config.PRINTER_PATH  # this is the path where the labels will be saved, it is set in the config file, and accessed in printer/generate_label.py
 
-    def create_item(self, category: str, body_dict: dict):
+    def create_item(self, category: int, body_dict: dict):
         response = self.itemsapi.post_item_with_http_info(
             body={
                 "category_id": category,

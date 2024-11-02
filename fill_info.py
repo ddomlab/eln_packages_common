@@ -24,7 +24,17 @@ def check_if_cas(input: str) -> bool:
             return False
     return True
 
-
+def pull_values(searchquery: str) -> dict:
+    compound: pcp.Compound = get_compound(searchquery)
+    return {
+        "Title_0": compound.synonyms[0],
+        "Full name": compound.iupac_name,
+        "SMILES": compound.isomeric_smiles,
+        "Molecular Weight": compound.molecular_weight,
+        "Pubchem Link": f"https://pubchem.ncbi.nlm.nih.gov/compound/{compound.cid}",
+        "Hazards Link": f"https://pubchem.ncbi.nlm.nih.gov/compound/{compound.cid}#section=Hazards-Identification",
+    }
+    
 def fill_in(id: int):
     body: dict = rm.get_item(id)
     metadata: dict = json.loads(body["metadata"])
@@ -32,17 +42,16 @@ def fill_in(id: int):
     if check_if_cas(body["title"]): 
         # if the title is a CAS number, search by CAS number, and replace the title with the first synonym on PubChem
         CAS: str = body["title"]
-        compound: pcp.Compound = get_compound(body["title"])
-        new_title = compound.synonyms[0]
-        print(compound.synonyms[0])
+        values: dict = pull_values(body["title"])
+        new_title = values["Title_0"]
     elif "CAS" in metadata["extra_fields"]:
         # if the title is not a CAS but there is a CAS in the metadata, search by that CAS
         CAS = metadata["extra_fields"]["CAS"]["value"]
-        compound: pcp.Compound = get_compound(CAS)
+        values: dict = pull_values(CAS)
     else:
         # otherwise try to search by the non-CAS title
-        compound: pcp.Compound = get_compound(body["title"])
-    metadata["extra_fields"]["Full name"]["value"] = compound.iupac_name
+        values: dict = pull_values(body["title"])
+    metadata["extra_fields"]["Full name"]["value"] = values["Full name"]
 
     if "SMILES" not in metadata["extra_fields"]:
         # if there isn't a SMILES field, create one
@@ -51,7 +60,7 @@ def fill_in(id: int):
             "value": "",
             "description": "From PubChem",
         }
-    metadata["extra_fields"]["SMILES"]["value"] = compound.isomeric_smiles
+    metadata["extra_fields"]["SMILES"]["value"] = values["SMILES"]
     if "CAS" not in metadata["extra_fields"]:
         # if there isn't a CAS field, create one
         metadata["extra_fields"]["CAS"] = {
@@ -67,7 +76,7 @@ def fill_in(id: int):
             "value": "",
             "description": "From PubChem (g/mol)",
         }
-    metadata["extra_fields"]["Molecular Weight"]["value"] = compound.molecular_weight
+    metadata["extra_fields"]["Molecular Weight"]["value"] = values["Molecular Weight"]
     if "Pubchem Link" not in metadata["extra_fields"]:
         # if there isn't a Pubchem link field, create one
         metadata["extra_fields"]["Pubchem Link"] = {
@@ -75,9 +84,7 @@ def fill_in(id: int):
             "value": "",
             "description": "Link to PubChem page",
         }
-    metadata["extra_fields"]["Pubchem Link"]["value"] = (
-        f"https://pubchem.ncbi.nlm.nih.gov/compound/{compound.cid}"
-    )
+    metadata["extra_fields"]["Pubchem Link"]["value"] = values["Pubchem Link"]
     if "Hazards Link" not in metadata["extra_fields"]:
         # if there isn't a hazards link field, create one
         metadata["extra_fields"]["Hazards Link"] = {
@@ -85,9 +92,7 @@ def fill_in(id: int):
             "value": "",
             "description": "Link to Hazards section of PubChem",
         }
-    metadata["extra_fields"]["Hazards Link"]["value"] = (
-        f"https://pubchem.ncbi.nlm.nih.gov/compound/{compound.cid}#section=Hazards-Identification"
-    )
+    metadata["extra_fields"]["Hazards Link"]["value"] = values["Hazards Link"]
     new_body = {
         "title": new_title,
         "metadata": json.dumps(metadata),
