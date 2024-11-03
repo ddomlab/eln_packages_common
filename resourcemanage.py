@@ -57,13 +57,13 @@ class Resource_Manager:
         # send the request
         requests.post(url, headers=header)
     
-    def get_items_types(self) -> list[config.elabapi_python.models.category.Category]:
+    def get_items_types(self) -> list[dict]:
         header = config.api_client.default_headers
         header = {**header, **{"Content-type": "application/json"}}
         # construct full API URL
         url = (
-            config
-            + "items_types"
+            config.URL
+            + "/items_types"
         )
         return requests.get(url, headers=header).json()
 
