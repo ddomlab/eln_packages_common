@@ -6,58 +6,55 @@
 # i am mostly writing wrappers and making the code a little more abstract and generally usable
 
 from eln_packages_common import config
+from typing import Any
 import json
 import requests
 
 
 class Resource_Manager:
     def __init__(self):
-        self.itemsapi = config.load_items_api()
-        self.expapi = config.load_experiments_api()
-        self.uploadsapi = config.load_uploads_api()
+        self.itemsapi:object = config.load_items_api()
+        self.expapi:object = config.load_experiments_api()
+        self.uploadsapi:object = config.load_uploads_api()
         self.printer_path = config.PRINTER_PATH  # this is the path where the labels will be saved, it is set in the config file, and accessed in printer/generate_label.py
 
-    def create_item(self, category: int, body_dict: dict):
-        response = self.itemsapi.post_item_with_http_info(
+    def create_item(self, category: int, body_dict: dict[str, Any]):
+        response = self.itemsapi.post_item_with_http_info( # type: ignore
             body={
                 "category_id": category,
             }
-        )
-        locationHeaderInResponse = response[2].get("Location")
+        ) 
+        locationHeaderInResponse: str = str(response[2].get("Location")) #type: ignore
         print(f"The newly created item is here: {locationHeaderInResponse}")
-        item_id = int(locationHeaderInResponse.split("/").pop())
+        item_id:int = int(locationHeaderInResponse.split("/").pop())
         self.change_item(item_id, body_dict)
 
-    def change_item(self, id: int, body_dict: dict):
-        self.itemsapi.patch_item(id, body=body_dict)
-    def get_metadata(self, id) -> dict:
+    def change_item(self, id: int, body_dict: dict[str, Any]):
+        self.itemsapi.patch_item(id, body=body_dict) #type: ignore
+    def get_metadata(self, id:int) -> dict[str, Any]:
         return json.loads(self.get_item(id)["metadata"])
-    def get_item(self, id) -> dict:
-        return self.itemsapi.get_item(id).to_dict()
+    def get_item(self, id:int) -> dict[str, Any]:
+        return self.itemsapi.get_item(id).to_dict() #type: ignore
         # this dictionary should contain:
         # title, id, category, metadata, rating
         # a lot of items are contained in the metadata field, which is a json string
         # this can be easily converted to/from a python dictionary in any method used to edit metadata
-
-    def experiment_item_link(self, experiment_id: int, item_id: int):
-        ## copied heavily from Connor's code, there may be a way to do this with the elabftw API
-        ## but there isn't a documented way, and it was easier to just use the requests library.
-
-        # get basic config information
-        header = config.api_client.default_headers
+    def post_url(self,url:str):
+        header:dict[str,str] = config.api_client.default_headers
         header = {**header, **{"Content-type": "application/json"}}
-        # construct full API URL
+        url = config.URL + url
+        requests.post(url, headers=header)
+    def experiment_item_link(self, experiment_id: int, item_id: int):
         url = (
-            config.URL
-            + "/experiments/"
+            "/experiments/"
             + str(experiment_id)
             + "/items_links/"
             + str(item_id)
         )
-        # send the request
-        requests.post(url, headers=header)
+
+        self.post_url(url)
     
-    def get_items_types(self) -> list[dict]:
+    def get_items_types(self) -> list[dict[str,Any]]:
         header = config.api_client.default_headers
         header = {**header, **{"Content-type": "application/json"}}
         # construct full API URL
@@ -73,24 +70,24 @@ class Resource_Manager:
         url = config.URL + "/items/" + str(item_id) + "/tags/"
         requests.post(url, headers=header, json={"tag": tag})
 
-    def get_items(self, size=None) -> list[config.elabapi_python.models.item.Item]:
+    def get_items(self, size:int=15) -> list[object]:
     # returns the most recent 15 if a size is not specified
-        return self.itemsapi.read_items(limit=size)
+        return self.itemsapi.read_items(limit=size) #type: ignore
 
-    def get_experiments(self) -> list[config.elabapi_python.models.experiment.Experiment]:
-        return self.expapi.read_experiments()
+    def get_experiments(self) -> list[object]:
+        return self.expapi.read_experiments() #type: ignore
 
     def upload_file(
-        self, id, path, comment="", resource_type="items"
+        self, id:int, path:str, comment:str="", resource_type:str="items"
     ):  # resource_type can be 'item' or 'experiment', wraps the upload api
-        self.uploadsapi.post_upload(resource_type, id, file=path, comment=comment)
+        self.uploadsapi.post_upload(resource_type, id, file=path, comment=comment) #type: ignore
 
     def delete_upload(
-        self, id, upload_id, resource_type="items"
+        self, id:int, upload_id:int, resource_type:str="items"
     ):  # resource_type can be 'item' or 'experiment', wraps the upload api
-        self.uploadsapi.delete_upload(resource_type, id, upload_id)
+        self.uploadsapi.delete_upload(resource_type, id, upload_id) #type: ignore
 
-    def get_uploaded_files(self, id, resource_type="items") -> list[config.elabapi_python.models.upload.Upload]:
-        return self.uploadsapi.read_uploads(
+    def get_uploaded_files(self, id:int, resource_type:str="items") -> list[object]:
+        return self.uploadsapi.read_uploads( #type: ignore
             resource_type, id
         )  # returns a list of file objects that can be written to a file
