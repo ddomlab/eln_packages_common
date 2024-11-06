@@ -13,9 +13,9 @@ import requests
 
 class Resource_Manager:
     def __init__(self):
-        self.itemsapi:object = config.load_items_api()
-        self.expapi:object = config.load_experiments_api()
-        self.uploadsapi:object = config.load_uploads_api()
+        self.itemsapi = config.load_items_api()
+        self.expapi = config.load_experiments_api()
+        self.uploadsapi = config.load_uploads_api()
         self.printer_path = config.PRINTER_PATH  # this is the path where the labels will be saved, it is set in the config file, and accessed in printer/generate_label.py
 
     def create_item(self, category: int, body_dict: dict[str, Any]):
@@ -87,7 +87,7 @@ class Resource_Manager:
     ):  # resource_type can be 'item' or 'experiment', wraps the upload api
         self.uploadsapi.delete_upload(resource_type, id, upload_id) #type: ignore
 
-    def get_uploaded_files(self, id:int, resource_type:str="items") -> list[object]:
+    def get_uploaded_files(self, id:int, resource_type:str="items") -> list:
         return self.uploadsapi.read_uploads( #type: ignore
             resource_type, id
         )  # returns a list of file objects that can be written to a file
