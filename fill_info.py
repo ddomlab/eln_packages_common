@@ -17,16 +17,29 @@ def get_compound(CAS) -> pcp.Compound:
     compound: pcp.Compound = compound_list[0]
     return compound
 
-
 def check_if_cas(input: str) -> bool:
-    for char in input:
-        if not char.isdigit() and char != "-":
-            return False
+    parts = input.split('-')
+    if len(parts) != 3:
+        return False
+    if not (parts[0].isdigit() and parts[1].isdigit() and parts[2].isdigit()):
+        return False
+    if len(parts[0]) < 2 or len(parts[0]) > 7:
+        return False
+    if len(parts[1]) != 2:
+        return False
+    if len(parts[2]) != 1:
+        return False
     return True
+def find_cas(input:list) -> str:
+    for item in input:
+        if check_if_cas(item):
+            return item
+    return ""
+
 
 def pull_values(searchquery: str) -> dict:
     compound: pcp.Compound = get_compound(searchquery)
-    return {
+    values:dict = {
         "Title_0": compound.synonyms[0],
         "Full name": compound.iupac_name,
         "SMILES": compound.isomeric_smiles,
@@ -34,6 +47,9 @@ def pull_values(searchquery: str) -> dict:
         "Pubchem Link": f"https://pubchem.ncbi.nlm.nih.gov/compound/{compound.cid}",
         "Hazards Link": f"https://pubchem.ncbi.nlm.nih.gov/compound/{compound.cid}#section=Hazards-Identification",
     }
+    if not check_if_cas(searchquery):
+        values.update({"CAS": find_cas(compound.synonyms)})
+    return values
     
 def fill_in(id: int):
     body: dict = rm.get_item(id)
@@ -51,6 +67,7 @@ def fill_in(id: int):
     else:
         # otherwise try to search by the non-CAS title
         values: dict = pull_values(body["title"])
+        CAS = ""
     metadata["extra_fields"]["Full name"]["value"] = values["Full name"]
 
     if "SMILES" not in metadata["extra_fields"]:
