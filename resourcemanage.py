@@ -39,11 +39,13 @@ class Resource_Manager:
         # title, id, category, metadata, rating
         # a lot of items are contained in the metadata field, which is a json string
         # this can be easily converted to/from a python dictionary in any method used to edit metadata
-    def post_url(self,url:str):
+    def get_experiment(self, id:int) -> dict[str, Any]:
+        return self.expapi.get_experiment(id).to_dict()
+    def post_url(self,url:str) -> requests.Response:
         header:dict[str,str] = config.api_client.default_headers
         header = {**header, **{"Content-type": "application/json"}}
         url = config.URL + url
-        requests.post(url, headers=header)
+        return requests.post(url, headers=header)
     def experiment_item_link(self, experiment_id: int, item_id: int):
         url = (
             "/experiments/"
@@ -51,9 +53,14 @@ class Resource_Manager:
             + "/items_links/"
             + str(item_id)
         )
-
+        # checks if the resource and experiment exist, throws error if not
+        try:
+            self.get_item(item_id)
+            self.get_experiment(experiment_id)
+        except config.elabapi_python.rest.ApiException:
+            raise ValueError("Experiment or item does not exist")
         self.post_url(url)
-    
+
     def get_items_types(self) -> list[dict[str,Any]]:
         header = config.api_client.default_headers
         header = {**header, **{"Content-type": "application/json"}}
