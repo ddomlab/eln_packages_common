@@ -1,5 +1,6 @@
 import pubchempy as pcp
 import json
+from rdkit import Chem
 from eln_packages_common.resourcemanage import Resource_Manager
 
 rm = Resource_Manager()
@@ -36,13 +37,18 @@ def find_cas(input:list) -> str:
             return item
     return ""
 
-
+def canonicalize_smiles(smiles: str) -> str:
+    # converts the input SMILES string into a Mol object to be interpreted by RDKit
+    # then returns the canonicalized SMILES
+    mol = Chem.MolFromSmiles(smiles)
+    return Chem.MolToSmiles(mol)
+    
 def pull_values(searchquery: str) -> dict:
     compound: pcp.Compound = get_compound(searchquery)
     values:dict = {
         "Title_0": compound.synonyms[0],
         "Full name": compound.iupac_name,
-        "SMILES": compound.isomeric_smiles,
+        "SMILES": canonicalize_smiles(compound.isomeric_smiles),
         "Molecular Weight": compound.molecular_weight,
         "Pubchem Link": f"https://pubchem.ncbi.nlm.nih.gov/compound/{compound.cid}",
         "Hazards Link": f"https://pubchem.ncbi.nlm.nih.gov/compound/{compound.cid}#section=Hazards-Identification",
@@ -50,7 +56,7 @@ def pull_values(searchquery: str) -> dict:
     if not check_if_cas(searchquery):
         values.update({"CAS": find_cas(compound.synonyms)})
     return values
-    
+
 def fill_in(id: int):
     body: dict = rm.get_item(id)
     metadata: dict = json.loads(body["metadata"])
