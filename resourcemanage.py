@@ -9,7 +9,7 @@ from eln_packages_common import config
 from typing import Any
 import json
 import requests
-
+import pandas as pd
 
 class Resource_Manager:
     def __init__(self):
@@ -61,7 +61,7 @@ class Resource_Manager:
             raise ValueError("Experiment or item does not exist")
         self.post_url(url)
 
-    def get_items_types(self) -> list[dict[str,Any]]:
+    def get_items_types(self) -> list[dict[str,Any]]: 
         header = config.api_client.default_headers
         header = {**header, **{"Content-type": "application/json"}}
         # construct full API URL
@@ -77,10 +77,20 @@ class Resource_Manager:
         url = config.URL + "/items/" + str(item_id) + "/tags/"
         requests.post(url, headers=header, json={"tag": tag})
 
-    def get_items(self, size:int=15) -> list[object]:
-    # returns the most recent 15 if a size is not specified
-        return self.itemsapi.read_items(limit=size) #type: ignore
+    def get_items(self, size:int=15, return_dict=False) -> list[object]: #TODO: figure out this type situation i hate it
+        # returns the most recent 15 if a size is not specified
+        if return_dict:
+            header = config.api_client.default_headers
+            header = {**header, **{"Content-type": "application/json"}}
+             # construct full API URL
+            url = (
+                config.URL
+                + "/items?limit="
+                + str(size)
+            )
+            return requests.get(url, headers=header).json()
 
+        return self.itemsapi.read_items(limit=size) #type: ignore
     def get_experiments(self) -> list[object]:
         return self.expapi.read_experiments() #type: ignore
 
@@ -98,3 +108,25 @@ class Resource_Manager:
         return self.uploadsapi.read_uploads( #type: ignore
             resource_type, id
         )  # returns a list of file objects that can be written to a file
+    def get_items_df(self, size=15):
+        def json_loads(x): # function to get dictionaries from json, accounting for elements that may be dictionaries already, json strings, or None
+            if isinstance(x, dict):
+                return x
+            if isinstance(x, str):
+                try:
+                    return json.loads(x)
+                except json.JSONDecodeError:
+                    return {}
+            return {}
+
+        def flatten_extra_fields(extra): # function to flatten the extra_fields dictionary
+            if not isinstance(extra, dict):
+                return {}
+            return {k: v.get('value') for k, v in extra.items() if isinstance(v, dict)}
+        
+        df: pd.DataFrame = pd.DataFrame(self.get_items(size, return_dict=True))
+        df['metadata'] = df['metadata'].apply(json_loads)
+        metadata: pd.DataFrame = df['metadata'].apply(pd.Series)
+        extra_fields_df: pd.DataFrame = metadata['extra_fields'].apply(flatten_extra_fields).apply(pd.Series)
+        df = pd.concat([df.drop(columns='metadata'), metadata.drop(columns='extra_fields'), extra_fields_df], axis=1)
+        return df
