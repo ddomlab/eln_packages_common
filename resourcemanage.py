@@ -170,13 +170,16 @@ class Resource_Manager:
             resource_type, id
         )
     
-    def get_items_df(self, size=15):
+    def get_items_df(self, size:int=15):
         """
         Gets a list of items in the ELN as a pandas DataFrame.
-            :param int size: The number of items to be gotten. Defaults to 15, setting it too high (~1000) causes it to default back to 15.
+            :param int size: The number of items to be gotten. Defaults to 15. Max of 9999.
             :return: A pandas DataFrame containing the items.
         """
-        # TODO: consider moving this to a different file so pandas isn't a req for simpler stuff
+        assert size <= 9999, "Size must be less than or equal to 9999"
+        assert size > 0, "Size must be greater than 0"
+
+        # TODO: consider moving get_items_df() to a different file so pandas isn't a req for simpler stuff
         def json_loads(x): 
             """function to get dictionaries from json, accounting for elements that may be dictionaries already, json strings, or None """
             if isinstance(x, dict):
