@@ -31,16 +31,11 @@ class Resource_Manager:
 
     def change_item(self, id: int, body_dict: dict[str, Any]):
         self.itemsapi.patch_item(id, body=body_dict) #type: ignore
-    def get_metadata(self, id:int) -> dict[str, Any]:
-        return json.loads(self.get_item(id)["metadata"])
-    def get_item(self, id:int) -> dict[str, Any]:
-        return self.itemsapi.get_item(id).to_dict() #type: ignore
-        # this dictionary should contain:
-        # title, id, category, metadata, rating
-        # a lot of items are contained in the metadata field, which is a json string
-        # this can be easily converted to/from a python dictionary in any method used to edit metadata
-    def get_experiment(self, id:int) -> dict[str, Any]:
-        return self.expapi.get_experiment(id).to_dict()
+
+    def upload_file(
+        self, id:int, path:str, comment:str="", resource_type:str="items"
+    ):  # resource_type can be 'item' or 'experiment', wraps the upload api
+        self.uploadsapi.post_upload(resource_type, id, file=path, comment=comment) #type: ignore
     def post_url(self,url:str) -> requests.Response:
         header:dict[str,str] = config.api_client.default_headers
         header = {**header, **{"Content-type": "application/json"}}
@@ -60,6 +55,27 @@ class Resource_Manager:
         except config.elabapi_python.rest.ApiException:
             raise ValueError("Experiment or item does not exist")
         self.post_url(url)
+    def add_tag(self, item_id: int, tag: str):
+        header = config.api_client.default_headers
+        header = {**header, **{"Content-type": "application/json"}}
+        url = config.URL + "/items/" + str(item_id) + "/tags/"
+        requests.post(url, headers=header, json={"tag": tag})
+
+    def delete_upload(
+        self, id:int, upload_id:int, resource_type:str="items"
+    ):  # resource_type can be 'item' or 'experiment', wraps the upload api
+        self.uploadsapi.delete_upload(resource_type, id, upload_id) #type: ignore   
+    def get_metadata(self, id:int) -> dict[str, Any]:
+        return json.loads(self.get_item(id)["metadata"])
+    
+    def get_item(self, id:int) -> dict[str, Any]:
+        return self.itemsapi.get_item(id).to_dict() #type: ignore
+        # this dictionary should contain:
+        # title, id, category, metadata, rating
+        # a lot of items are contained in the metadata field, which is a json string
+        # this can be easily converted to/from a python dictionary in any method used to edit metadata
+    def get_experiment(self, id:int) -> dict[str, Any]:
+        return self.expapi.get_experiment(id).to_dict()
 
     def get_items_types(self) -> list[dict[str,Any]]: 
         header = config.api_client.default_headers
@@ -71,43 +87,25 @@ class Resource_Manager:
         )
         return requests.get(url, headers=header).json()
 
-    def add_tag(self, item_id: int, tag: str):
-        header = config.api_client.default_headers
-        header = {**header, **{"Content-type": "application/json"}}
-        url = config.URL + "/items/" + str(item_id) + "/tags/"
-        requests.post(url, headers=header, json={"tag": tag})
-
     def get_items(self, size:int=15, return_dict=False) -> list[object]: #TODO: figure out this type situation i hate it
         # returns the most recent 15 if a size is not specified
-        if return_dict:
-            header = config.api_client.default_headers
-            header = {**header, **{"Content-type": "application/json"}}
-             # construct full API URL
-            url = (
-                config.URL
-                + "/items?limit="
-                + str(size)
-            )
-            return requests.get(url, headers=header).json()
-
-        return self.itemsapi.read_items(limit=size) #type: ignore
+        header = config.api_client.default_headers
+        header = {**header, **{"Content-type": "application/json"}}
+            # construct full API URL
+        url = (
+            config.URL
+            + "/items?limit="
+            + str(size)
+        )
+        return requests.get(url, headers=header).json()
     def get_experiments(self) -> list[object]:
         return self.expapi.read_experiments() #type: ignore
-
-    def upload_file(
-        self, id:int, path:str, comment:str="", resource_type:str="items"
-    ):  # resource_type can be 'item' or 'experiment', wraps the upload api
-        self.uploadsapi.post_upload(resource_type, id, file=path, comment=comment) #type: ignore
-
-    def delete_upload(
-        self, id:int, upload_id:int, resource_type:str="items"
-    ):  # resource_type can be 'item' or 'experiment', wraps the upload api
-        self.uploadsapi.delete_upload(resource_type, id, upload_id) #type: ignore
 
     def get_uploaded_files(self, id:int, resource_type:str="items") -> list:
         return self.uploadsapi.read_uploads( #type: ignore
             resource_type, id
         )  # returns a list of file objects that can be written to a file
+    
     def get_items_df(self, size=15):
         def json_loads(x): # function to get dictionaries from json, accounting for elements that may be dictionaries already, json strings, or None
             if isinstance(x, dict):
