@@ -123,6 +123,7 @@ def get_filled_dictionary(body: dict) -> dict:
     metadata["extra_fields"]["Hazards Link"]["value"] = values["Hazards Link"]
     new_body = {
         "title": new_title,
+        "category": body["category"],
         "metadata": json.dumps(metadata),
         "rating": 0, # before i figured out tags I used this to mark autofilled items, no longer necessary. this will remove ratings
     }
