@@ -31,6 +31,7 @@ def check_if_cas(input: str) -> bool:
     if len(parts[2]) != 1:
         return False
     return True
+
 def find_cas(input:list) -> str:
     for item in input:
         if check_if_cas(item):
@@ -58,7 +59,11 @@ def pull_values(searchquery: str) -> dict:
     return values
 
 def fill_in(id: int):
-    body: dict = rm.get_item(id)
+    body = rm.get_item(id)
+    body = get_filled_dictionary(body)
+    rm.update_item(id, body)
+
+def get_filled_dictionary(body: dict) -> dict:
     metadata: dict = json.loads(body["metadata"])
     new_title: str = body["title"]
     if check_if_cas(body["title"]): 
@@ -66,7 +71,7 @@ def fill_in(id: int):
         CAS: str = body["title"]
         values: dict = pull_values(body["title"])
         new_title = values["Title_0"]
-    elif "CAS" in metadata["extra_fields"]:
+    elif "CAS" in metadata["extra_fields"] and metadata["extra_fields"]["CAS"]["value"] != "":
         # if the title is not a CAS but there is a CAS in the metadata, search by that CAS
         CAS = metadata["extra_fields"]["CAS"]["value"]
         values: dict = pull_values(CAS)
@@ -121,4 +126,4 @@ def fill_in(id: int):
         "metadata": json.dumps(metadata),
         "rating": 0, # before i figured out tags I used this to mark autofilled items, no longer necessary. this will remove ratings
     }
-    rm.change_item(id, new_body)
+    return new_body
