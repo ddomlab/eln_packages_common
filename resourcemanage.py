@@ -11,12 +11,12 @@ import requests
 import pandas as pd
 
 class Resource_Manager:
-    def __init__(self):
-        self.itemsapi = config.load_items_api()
-        self.expapi = config.load_experiments_api()
-        self.uploadsapi = config.load_uploads_api()
+    def __init__(self, key: str | None = None):
+        self.itemsapi = config.load_items_api(key)
+        self.expapi = config.load_experiments_api(key)
+        self.uploadsapi = config.load_uploads_api(key)
         self.printer_path = config.PRINTER_PATH  # this is the path where the labels will be saved, it is set in the config file, and accessed in printer/generate_label.py
-        header = config.api_client.default_headers
+        header = config.get_api_key(key).default_headers
         self.header = {**header, **{"Content-type": "application/json"}}
 
 

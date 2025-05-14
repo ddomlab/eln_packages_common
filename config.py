@@ -17,33 +17,40 @@ PRINTER_PATH = current_dir.parent / "tmp" / "label.pdf"
 urllib3.disable_warnings()
 
 # takes API key from secret file, loads it to elabapi
-with open(API_KEY_PATH) as keyfile:
-    key = keyfile.read()
-configuration = elabapi_python.Configuration()
-configuration.api_key["api_key"] = key
-configuration.api_key_prefix["api_key"] = "Authorization"
-configuration.host = URL
-configuration.debug = False
-configuration.verify_ssl = False
+def get_api_key(key:str | None = None):
+    if key is None:
+        with open(API_KEY_PATH) as keyfile:
+            key = keyfile.read()
+    configuration = elabapi_python.Configuration()
+    configuration.api_key["api_key"] = key
+    configuration.api_key_prefix["api_key"] = "Authorization"
+    configuration.host = URL
+    configuration.debug = False
+    configuration.verify_ssl = False
 
-# create an instance of the API class
-api_client = elabapi_python.ApiClient(configuration)
+    # create an instance of the API class
+    api_client = elabapi_python.ApiClient(configuration)
 
-# fix issue with Authorization header not being properly set by the generated lib
-api_client.set_default_header(header_name="Authorization", header_value=key)
+    # fix issue with Authorization header not being properly set by the generated lib
+    api_client.set_default_header(header_name="Authorization", header_value=key)
+    return api_client
 
 
-def load_items_api():
+def load_items_api(key= None):
+    api_client = get_api_key(key)
     return elabapi_python.ItemsApi(api_client) 
 
 
-def load_experiments_api():
+def load_experiments_api(key= None):
+    api_client = get_api_key(key)
     return elabapi_python.ExperimentsApi(api_client)
 
 
-def load_uploads_api():
+def load_uploads_api(key= None):
+    api_client = get_api_key(key)
     return elabapi_python.UploadsApi(api_client) 
 
 
-def load_api():
+def load_api(key= None):
+    api_client = get_api_key(key)
     return api_client
