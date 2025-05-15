@@ -4,7 +4,7 @@
 
 # this contains mostly code written by Connor found in Python_Scripts.zip in the Onedrive.
 # i am mostly writing wrappers and making the code a little more abstract and generally usable
-import config
+import eln_packages_common.config as config
 from typing import Any
 import json
 import requests

@@ -1,7 +1,7 @@
 import pubchempy as pcp
 import json
 from rdkit import Chem
-from resourcemanage import Resource_Manager
+from eln_packages_common.resourcemanage import Resource_Manager
 
 rm = Resource_Manager()
 # CAS numbers fall in the 'name' category on pubchem, so they are searched as names
