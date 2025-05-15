@@ -5,7 +5,7 @@
 tmp/*
 
 # api key text file
-api_key
+*api_key
 
 # IDEs
 .idea
