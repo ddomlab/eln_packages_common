@@ -8,4 +8,7 @@ setup(
     author="Kyle Hollars",
     author_email="kmhollar@ncsu.edu",
     python_requires=">=3.11",
+    package_data={
+        "eln_packages_common": ["api_key"],
+    },
 )
