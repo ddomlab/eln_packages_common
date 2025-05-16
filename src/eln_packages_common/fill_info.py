@@ -61,7 +61,7 @@ def pull_values(searchquery: str) -> dict:
 def fill_in(id: int):
     body = rm.get_item(id)
     body = get_filled_dictionary(body)
-    rm.update_item(id, body)
+    rm.change_item(id, body)
 
 def get_filled_dictionary(body: dict) -> dict:
     metadata: dict = json.loads(body["metadata"])
