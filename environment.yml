@@ -1,4 +1,4 @@
-name:  # Environment name
+name: commonenv # Environment name
 
 dependencies:  # Packages should be installed through conda if possible
   - python=3.12.4  # Python version

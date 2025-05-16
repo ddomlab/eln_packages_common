@@ -8,7 +8,7 @@ current_dir = Path(__file__).parent
 # in the .gitignore where you should paste your api key as plain text.
 # it will not (and should not) be added to any public git repository, and will remain unique for each machine
 # new api keys can be generated at https://eln.ddomlab.org/ucp.php?tab=4
-API_KEY_PATH = str(current_dir.parent / "api_key")
+API_KEY_PATH = str(current_dir / "api_key")
 URL = "https://eln.ddomlab.org/api/v2"
 PRINTER_PATH = current_dir.parent / "tmp" / "label.pdf"
 ##################################################
