@@ -20,14 +20,14 @@ class Resource_Manager:
         self.header = {**header, **{"Content-type": "application/json"}}
 
 
-    def post_url(self,url:str) -> requests.Response:
+    def post_url(self,url:str,json:dict|None=None) -> requests.Response:
         """
         TODO: is this necessary? Either use this method everywhere or not at all
         Posts a URL to the ELN with the given URL. Used for more manual processes.
             :param str url: The URL to be posted.
         """
         url = config.URL + url
-        return requests.post(url, headers=self.header)
+        return requests.post(url, headers=self.header, json=json)
     def get_url(self,url:str) -> requests.Response:
         """
         TODO: is this necessary? Either use this method everywhere or not at all
@@ -90,6 +90,13 @@ class Resource_Manager:
         except config.elabapi_python.rest.ApiException:
             raise ValueError("Experiment or item does not exist")
         self.post_url(url)
+    def find_and_create_compound(self, CAS:str):
+        """
+        Finds a compound in the ELN with the given CAS number and creates it if it does not exist.
+            :param str CAS: The CAS number of the compound to be found.
+            :return: The ID of the compound.
+        """
+        self.post_url("/compounds/", json={"action":"duplicate", "cas":CAS})
     def add_tag(self, item_id: int, tag: str):
         """
         Adds a tag to an item in the ELN with the given item ID and tag. Take care to use correct capitalization/whitespace
