@@ -28,6 +28,14 @@ class Resource_Manager:
         """
         url = config.URL + url
         return requests.post(url, headers=self.header)
+    def get_url(self,url:str) -> requests.Response:
+        """
+        TODO: is this necessary? Either use this method everywhere or not at all
+        Sends a GET request to the ELN with the given URL. Used for more manual processes.
+            :param str url: The URL to be posted.
+        """
+        url = config.URL + url
+        return requests.get(url, headers=self.header)
     def create_item(self, category: int, body_dict: dict[str, Any]) -> None:
         """
         Creates an item in the ELN with the given category and body_dict.
@@ -168,7 +176,13 @@ class Resource_Manager:
         return self.uploadsapi.read_uploads( #type: ignore
             resource_type, id
         )
-    
+    def is_item_busy(self, id:int) -> bool:
+        """
+        Checks if an item in the ELN with the given ID is being edited.
+            :param int id: The ID of the item to be checked.
+            :return: True if the item is busy, False otherwise.
+        """
+        return self.get_url('/items/' + str(id)).json()['exclusive_edit_mode'] != [] # return True if item is busy, False otherwise
     def get_items_df(self, size:int=15):
         """
         Gets a list of items in the ELN as a pandas DataFrame.
