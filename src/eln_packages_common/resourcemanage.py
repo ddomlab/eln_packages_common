@@ -97,6 +97,20 @@ class Resource_Manager:
             :return: The ID of the compound.
         """
         self.post_url("/compounds/", json={"action":"duplicate", "cas":CAS})
+    def associate_compound(self, comp_id:int,res_id:int):
+        """
+        Associates a compound with the given CAS number to an item in the ELN with the given ID.
+            :param str CAS: The CAS number of the compound to be associated.
+            :param int id: The ID of the item to be associated with.
+        """
+        self.post_url("/items/" + str(res_id) + "/compounds/" + str(comp_id))
+    
+    def get_compounds(self):
+        """
+        Gets a list of compounds in the ELN as dictionaries.
+            :return: A list of dictionaries containing the compounds.
+        """
+        return self.get_url("/compounds?limit=1000").json()
     def add_tag(self, item_id: int, tag: str):
         """
         Adds a tag to an item in the ELN with the given item ID and tag. Take care to use correct capitalization/whitespace
@@ -190,6 +204,16 @@ class Resource_Manager:
             :return: True if the item is busy, False otherwise.
         """
         return self.get_url('/items/' + str(id)).json()['exclusive_edit_mode'] != [] # return True if item is busy, False otherwise
+    def json_loads(self, x): 
+        """function to get dictionaries from json, accounting for elements that may be dictionaries already, json strings, or None """
+        if isinstance(x, dict):
+            return x
+        if isinstance(x, str):
+            try:
+                return json.loads(x)
+            except json.JSONDecodeError:
+                return {}
+        return {}
     def get_items_df(self, size:int=15):
         """
         Gets a list of items in the ELN as a pandas DataFrame.
@@ -200,16 +224,7 @@ class Resource_Manager:
         assert size > 0, "Size must be greater than 0"
 
         # TODO: consider moving get_items_df() to a different file so pandas isn't a req for simpler stuff
-        def json_loads(x): 
-            """function to get dictionaries from json, accounting for elements that may be dictionaries already, json strings, or None """
-            if isinstance(x, dict):
-                return x
-            if isinstance(x, str):
-                try:
-                    return json.loads(x)
-                except json.JSONDecodeError:
-                    return {}
-            return {}
+       
 
         def flatten_extra_fields(extra): # function to flatten the extra_fields dictionary
             if not isinstance(extra, dict):
@@ -217,8 +232,15 @@ class Resource_Manager:
             return {k: v.get('value') for k, v in extra.items() if isinstance(v, dict)}
         
         df: pd.DataFrame = pd.DataFrame(self.get_items(size))
-        df['metadata'] = df['metadata'].apply(json_loads)
+        df['metadata'] = df['metadata'].apply(self.json_loads)
         metadata: pd.DataFrame = df['metadata'].apply(pd.Series)
         extra_fields_df: pd.DataFrame = metadata['extra_fields'].apply(flatten_extra_fields).apply(pd.Series)
         df = pd.concat([df.drop(columns='metadata'), metadata.drop(columns='extra_fields'), extra_fields_df], axis=1)
+        return df
+    def get_compounds_df(self) -> pd.DataFrame:
+        """
+        Gets a list of compounds in the ELN as a pandas DataFrame.
+            :return: A pandas DataFrame containing the compounds.
+        """
+        df: pd.DataFrame = pd.DataFrame(self.get_compounds())
         return df
