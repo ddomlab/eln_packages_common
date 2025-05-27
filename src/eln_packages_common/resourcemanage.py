@@ -226,10 +226,25 @@ class Resource_Manager:
         # TODO: consider moving get_items_df() to a different file so pandas isn't a req for simpler stuff
        
 
-        def flatten_extra_fields(extra): # function to flatten the extra_fields dictionary
+        def flatten_extra_fields(extra):
             if not isinstance(extra, dict):
                 return {}
-            return {k: v.get('value') for k, v in extra.items() if isinstance(v, dict)}
+
+            flat = {}
+            for k, v in extra.items():
+                if not isinstance(v, dict):
+                    continue
+
+                # Extract the main value
+                flat[k] = v.get("value")
+
+                # Handle units if present
+                if "unit" in v:
+                    if v["unit"] == "":
+                        v["unit"] = v["units"][0]
+                    flat[f"{k} Units"] = v["unit"]
+                
+            return flat
         
         df: pd.DataFrame = pd.DataFrame(self.get_items(size))
         df['metadata'] = df['metadata'].apply(self.json_loads)
