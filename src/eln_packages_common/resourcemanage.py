@@ -14,6 +14,7 @@ class Resource_Manager:
     def __init__(self, key: str | None = None):
         self.itemsapi = config.load_items_api(key)
         self.expapi = config.load_experiments_api(key)
+        # self.add_commentsapi = config.load_comments_api(key)
         self.uploadsapi = config.load_uploads_api(key)
         self.printer_path = config.PRINTER_PATH  # this is the path where the labels will be saved, it is set in the config file, and accessed in printer/generate_label.py
         header = config.get_api_key(key).default_headers
@@ -59,6 +60,14 @@ class Resource_Manager:
             :param dict body_dict: The body of the item to be changed.
         """
         self.itemsapi.patch_item(id, body=body_dict) #type: ignore
+    
+    # def add_comment(self, id: int, comment: str) ->None:
+    #     """
+    #     Adds a comment to an item in the ELN with the given ID and comment.
+    #         :param int id: The ID of the item to be commented on.
+    #         :param str comment: The comment to be added to the item.
+    #     """
+    #     self.commentsapi.
 
     def upload_file(
         self, id:int, path:str, comment:str="", resource_type:str="items"
@@ -151,7 +160,7 @@ class Resource_Manager:
             :param int id: The ID of the experiment to be gotten.
             :return: A dictionary containing the experiment information, with {title, id, category, metadata,rating,tags} and many more fields.
         """
-        return self.expapi.get_experiment(id).to_dict()
+        return self.expapi.get_experiment(id).to_dict() #type: ignore
 
     def get_items_types(self) -> list[dict[str,Any]]: 
         """

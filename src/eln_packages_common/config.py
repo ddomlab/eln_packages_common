@@ -40,6 +40,9 @@ def load_items_api(key= None):
     api_client = get_api_key(key)
     return elabapi_python.ItemsApi(api_client) 
 
+# def load_comments_api(key= None):
+#     api_client = get_api_key(key)
+#     return elabapi_python.CommentsApi(api_client)
 
 def load_experiments_api(key= None):
     api_client = get_api_key(key)
