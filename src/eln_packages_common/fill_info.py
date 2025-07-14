@@ -42,7 +42,7 @@ def canonicalize_smiles(smiles: str) -> str:
     # converts the input SMILES string into a Mol object to be interpreted by RDKit
     # then returns the canonicalized SMILES
     if smiles is None or smiles == "": # stupid workaround for NoneType error, thanks PubChem :(
-        return ""
+        return "PubChem Error, could not fetch SMILES"
     mol = Chem.MolFromSmiles(smiles)
     return Chem.MolToSmiles(mol)
     
