@@ -14,7 +14,7 @@ def get_compound(CAS) -> pcp.Compound:
             "Multiple compounds with this name have been found, please input a more specific name or CAS number"
         )
     elif len(compound_list) == 0:
-        raise ValueError("No compound with this name has been found")
+        raise ValueError("No compound with this CAS/name has been found")
     compound: pcp.Compound = compound_list[0]
     return compound
 
